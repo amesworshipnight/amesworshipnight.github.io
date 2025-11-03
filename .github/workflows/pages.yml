@@ -24,14 +24,7 @@ jobs:
           node-version: 20
       - name: Install
         run: npm ci || npm i
-      - name: Check env (fail fast if missing)
-        run: |
-          test -n "${{ vars.VITE_SUPABASE_URL }}" || (echo "VITE_SUPABASE_URL missing" && exit 1)
-          test -n "${{ secrets.VITE_SUPABASE_ANON_KEY }}" || (echo "VITE_SUPABASE_ANON_KEY missing" && exit 1)
       - name: Build
-        env:
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
       - name: Configure Pages
         uses: actions/configure-pages@v5

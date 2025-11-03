@@ -1,7 +1,7 @@
 {
-  "name": "ames-worship-night",
+  "name": "ames-worship-night-site",
   "private": true,
-  "version": "0.1.3",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,10 +9,10 @@
     "preview": "vite preview --port 4173"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2"
+    "react-router-dom": "^6.26.2",
+    "marked": "^12.0.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.10",

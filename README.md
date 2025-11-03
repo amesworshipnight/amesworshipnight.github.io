@@ -1,12 +1,20 @@
-# Ames Worship Night (Robust Pages Build)
+# Ames Worship Night — Public Site (No Auth)
 
-This build adds:
-- Correct, expanded GitHub Pages workflow
-- Fail-fast env checks in CI
-- In-app guard that shows a **red banner** if `VITE_SUPABASE_URL` or `VITE_SUPABASE_ANON_KEY` are missing/invalid
-- Proper magic-link verification for Supabase
+**Purpose:** A clean public website at `amesworshipnight.github.io` with no login. Content is stored in `/content` so you can edit it in GitHub. Team submissions use Google Forms (links in `content/links.json`).
 
-## Deploy
-1) Set repo Variables/Secrets for Supabase (URL, anon key).
-2) Commit to main; Actions will build and deploy.
-3) If the site shows a red configuration banner, fix the envs in GitHub → Actions Variables/Secrets and redeploy.
+## Deploy on GitHub Pages
+1) Create repo **amesworshipnight.github.io**.
+2) Upload this project and commit to **main**.
+3) GitHub Actions will build and deploy automatically (workflow included).
+
+## Edit Content
+- `content/schedule.json` → upcoming events.
+- `content/about.md` → About page.
+- `content/posts/*.md` → Blog posts (add more files, then list them in `Blog` page).
+- `content/links.json` → Instagram/YouTube/Contact + Google Forms links.
+
+## Local dev
+```bash
+npm i
+npm run dev
+```

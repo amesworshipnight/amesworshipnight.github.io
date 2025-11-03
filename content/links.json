@@ -1,0 +1,11 @@
+{
+  "instagram": "https://instagram.com/",
+  "youtube": "https://www.youtube.com/",
+  "contactEmail": "amesworshipnight@example.com",
+  "forms": {
+    "availability": "https://forms.gle/your-availability-form",
+    "lyrics": "https://forms.gle/your-lyrics-form",
+    "finances": "https://forms.gle/your-finances-form",
+    "attendance": "https://forms.gle/your-attendance-form"
+  }
+}
