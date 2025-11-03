@@ -1,10 +1,12 @@
-# Ames Worship Night (Fixed Build)
-This version adds **@vitejs/plugin-react** so Vite can compile React. Follow the same setup steps as before (Supabase URL/Key, SQL schema, Pages deploy).
+# Ames Worship Night (Robust Pages Build)
 
+This build adds:
+- Correct, expanded GitHub Pages workflow
+- Fail-fast env checks in CI
+- In-app guard that shows a **red banner** if `VITE_SUPABASE_URL` or `VITE_SUPABASE_ANON_KEY` are missing/invalid
+- Proper magic-link verification for Supabase
 
-## Magic Link Notes
-- This build handles Supabase's `token_hash` flow automatically. We store your email locally when you click **Send magic link**, then verify it after redirect using `supabase.auth.verifyOtp`.
-- Ensure Supabase Auth → Redirect URLs include:
-  - `https://amesworshipnight.github.io/`
-  - `https://amesworshipnight.github.io/#/`
-  - `http://localhost:5173/`
+## Deploy
+1) Set repo Variables/Secrets for Supabase (URL, anon key).
+2) Commit to main; Actions will build and deploy.
+3) If the site shows a red configuration banner, fix the envs in GitHub → Actions Variables/Secrets and redeploy.

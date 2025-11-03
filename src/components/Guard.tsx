@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, SUPABASE_URL, SUPABASE_ANON } from '../lib/supabase'
 import Loading from './Loading'
+import ErrorBanner from './ErrorBanner'
+import { envIssue } from '../lib/envGuard'
 
 function getParamFromUrl(name: string) {
-  // supports token_hash in either search (?token_hash=) or hash (#...token_hash=)
   const fromSearch = new URLSearchParams(window.location.search).get(name)
   if (fromSearch) return fromSearch
   const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash
@@ -12,19 +13,16 @@ function getParamFromUrl(name: string) {
 
 async function maybeVerifyMagicLink() {
   const token_hash = getParamFromUrl('token_hash')
-  const type = getParamFromUrl('type') // should be 'magiclink' or 'signup'
-  if (token_hash) {
+  const type = getParamFromUrl('type')
+  if (token_hash && SUPABASE_URL && SUPABASE_ANON) {
     const email = localStorage.getItem('otp_email') || undefined
     try {
-      const { data, error } = await supabase.auth.verifyOtp({ type: (type as any) || 'magiclink', token_hash, email })
-      if (error) console.error('verifyOtp error', error)
-      // Clean URL
+      await supabase.auth.verifyOtp({ type: (type as any) || 'magiclink', token_hash, email })
       const url = new URL(window.location.href)
       url.searchParams.delete('token_hash'); url.searchParams.delete('type')
-      // Some providers put it in the hash as well; reset to our hash root
       window.history.replaceState({}, '', url.origin + url.pathname + '#/')
     } catch (e) {
-      console.error('verifyOtp threw', e)
+      console.error('verifyOtp error', e)
     }
   }
 }
@@ -32,12 +30,15 @@ async function maybeVerifyMagicLink() {
 export default function Guard({ children }: { children: JSX.Element }) {
   const [ready, setReady] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const issue = envIssue()
 
   useEffect(() => {
     (async () => {
-      await maybeVerifyMagicLink()
-      const { data } = await supabase.auth.getUser()
-      setUser(data.user)
+      if (!issue) {
+        await maybeVerifyMagicLink()
+        const { data } = await supabase.auth.getUser()
+        setUser(data.user)
+      }
       setReady(true)
     })()
     const { data: listener } = supabase.auth.onAuthStateChange((_, session) => setUser(session?.user ?? null))
@@ -45,6 +46,7 @@ export default function Guard({ children }: { children: JSX.Element }) {
   }, [])
 
   if (!ready) return <Loading />
+  if (issue) return <div className="p-6 max-w-xl mx-auto"><ErrorBanner msg={issue} /></div>
   if (!user) return (
     <div className="p-6 max-w-md mx-auto">
       <h1 className="text-2xl font-semibold mb-2">Sign in required</h1>
@@ -61,12 +63,8 @@ function LoginForm() {
   return (
     <form onSubmit={async e => {
       e.preventDefault()
-      // store email for verifyOtp after redirect
       localStorage.setItem('otp_email', email)
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.origin + '/#/' }
-      })
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + '/#/' } })
       if (!error) setSent(true)
       else alert(error.message)
     }} className="space-y-3">

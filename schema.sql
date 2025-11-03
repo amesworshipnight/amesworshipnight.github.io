@@ -1,2 +1,0 @@
--- See earlier message for the full schema; if you re-downloaded only this zip, use that.
--- Recommended: copy the schema from the prior zip if you already used it.

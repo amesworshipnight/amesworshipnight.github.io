@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-
 export default function NavBar() {
   const link = ({isActive}:{isActive:boolean}) => (isActive ? 'font-semibold' : '')
   return (
