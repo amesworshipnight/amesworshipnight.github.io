@@ -2,12 +2,44 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import Loading from './Loading'
 
+function getParamFromUrl(name: string) {
+  // supports token_hash in either search (?token_hash=) or hash (#...token_hash=)
+  const fromSearch = new URLSearchParams(window.location.search).get(name)
+  if (fromSearch) return fromSearch
+  const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash
+  return new URLSearchParams(hash).get(name)
+}
+
+async function maybeVerifyMagicLink() {
+  const token_hash = getParamFromUrl('token_hash')
+  const type = getParamFromUrl('type') // should be 'magiclink' or 'signup'
+  if (token_hash) {
+    const email = localStorage.getItem('otp_email') || undefined
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({ type: (type as any) || 'magiclink', token_hash, email })
+      if (error) console.error('verifyOtp error', error)
+      // Clean URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete('token_hash'); url.searchParams.delete('type')
+      // Some providers put it in the hash as well; reset to our hash root
+      window.history.replaceState({}, '', url.origin + url.pathname + '#/')
+    } catch (e) {
+      console.error('verifyOtp threw', e)
+    }
+  }
+}
+
 export default function Guard({ children }: { children: JSX.Element }) {
   const [ready, setReady] = useState(false)
   const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => { setUser(data.user); setReady(true) })
+    (async () => {
+      await maybeVerifyMagicLink()
+      const { data } = await supabase.auth.getUser()
+      setUser(data.user)
+      setReady(true)
+    })()
     const { data: listener } = supabase.auth.onAuthStateChange((_, session) => setUser(session?.user ?? null))
     return () => { listener.subscription.unsubscribe() }
   }, [])
@@ -29,7 +61,12 @@ function LoginForm() {
   return (
     <form onSubmit={async e => {
       e.preventDefault()
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + '/#/' } })
+      // store email for verifyOtp after redirect
+      localStorage.setItem('otp_email', email)
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin + '/#/' }
+      })
       if (!error) setSent(true)
       else alert(error.message)
     }} className="space-y-3">
